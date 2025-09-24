@@ -4,6 +4,8 @@ const morgan = require('morgan')
 const mongoose = require('mongoose');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/products');
+const cartRoutes = require("./routes/cart");
+const orderRoutes = require("./routes/orders");
 dotenv.config({
     path:"config.env"
 })
@@ -51,6 +53,8 @@ app.use(express.json())
 
 app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
+app.use("/api/carts", cartRoutes);
+app.use("/api/orders", orderRoutes);
 
 const PORT = process.env.PORT || 8000;
 app.listen(PORT, ()=>{
