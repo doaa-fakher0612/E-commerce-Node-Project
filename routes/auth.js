@@ -3,6 +3,7 @@ const router = express.Router();
 const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const { protect } = require('../middleware/auth');
 
 // Register
 router.post('/register', async (req,res) => {
@@ -27,6 +28,38 @@ router.post('/login', async (req,res) => {
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
     res.json({ token });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Update own profile
+router.put('/me', protect, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    // update allowed fields
+    user.username = req.body.username || user.username;
+    user.email = req.body.email || user.email;
+    if (req.body.password) {
+      user.password = req.body.password; // will be hashed by pre('save')
+    }
+
+    await user.save();
+    res.json({ message: 'Profile updated', user });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// Delete own account
+router.delete('/me', protect, async (req, res) => {
+  try {
+    const user = await User.findByIdAndDelete(req.user.id);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    res.json({ message: 'User deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
