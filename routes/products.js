@@ -12,17 +12,29 @@ router.get('/', async (req,res) => {
 // Search products (only logged in)
 router.get('/search', protect, async (req,res) => {
   const q = req.query.q;
+
+
   const products = await Product.find({
-    name: { $regex: q, $options: 'i' }
-  });
-  res.json(products);
+    $or: [
+      { name: { $regex: q, $options: 'i' } }
+    ]
+  }).populate("seller", "username"); 
+
+  // 
+  const filtered = products.filter(p =>
+    p.seller && p.seller.username.match(new RegExp(q, "i"))
+    || p.name.match(new RegExp(q, "i"))
+  );
+
+  res.json(filtered);
 });
+
 
 // Create product (seller only)
 router.post('/', protect, authorizeRoles('seller'), async (req,res) => {
-  const { name, description, photo, price } = req.body;
+  const { name, description, image, price } = req.body;
   const product = await Product.create({ 
-    name, description, photo, price, seller: req.user._id 
+    name, description, image, price, seller: req.user._id 
   });
   res.json(product);
 });

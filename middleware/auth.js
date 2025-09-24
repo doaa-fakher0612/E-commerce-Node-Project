@@ -15,6 +15,6 @@ exports.protect = async (req,res,next) => {
 }
 
 exports.authorizeRoles = (...roles) => (req,res,next) => {
-  if(!roles.includes(req.user.role)) return res.status(403).json({ message: 'ممنوع' });
+  if(!roles.includes(req.user.role)) return res.status(403).json({ message: 'only seller can add products' });
   next();
 }
